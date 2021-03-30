@@ -20,12 +20,12 @@ int main(int argc, char * argv[]) {
 	int f8;
 	
 	//creazione 3 processi S1,S2,S3		
-	for(int child=0; child<3; ++child)
-	pid_t pid = fork();
+	for(int child=0; child<3; ++child) {
+		pid_t pid = fork();
 	//controllo se errore nella creazione del figlio
-	if(pid == -1)
-		printf("Figlio %d non creato", child);
-	
+		if(pid == -1)
+			printf("Figlio %d non creato", child);
+	}
 
 	//apertura file F8	
 	f8=open("OutputFiles/F8.csv", O_RDWR, S_IRWXU | S_IROTH | S_IXOTH);
@@ -45,8 +45,8 @@ int main(int argc, char * argv[]) {
 	if(f0==-1)
 		ErrExit("Errore apertura file");
 	
-	char buffer[MAX_READ];
-	ssize_t f0Read= read(f0, buffer, MAX_READ);
+	char buffer1[MAX_READ];
+	ssize_t f0Read= read(f0, buffer1, MAX_READ);
 	if (f0Read == -1)
 		ErrExit("Errore lettura file");
 	
