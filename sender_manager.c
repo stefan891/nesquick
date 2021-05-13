@@ -61,9 +61,9 @@ int main(int argc, char * argv[]) {
 
 	int nCifre;
 	pid_t pid;
-	char buffer_S[] = "Id; Message; Id Sender; Id Receiver; TimeArrival; TimeDeparture";
+	char buffer_S[] = "Id | Message | Id Sender | Id Receiver | TimeArrival | TimeDeparture";
 	int lenght_id=0;
-	int lenght_Mess=0;
+	int lenght_mess=0;
 	int lenght_idsender=0;
 	int lenght_idreceiver=0;
 	int lenght_s1=0;
@@ -78,7 +78,7 @@ int main(int argc, char * argv[]) {
 		ErrExit("Errore apertura file F8");
 	
 	//scrittura nel file F8 del titolo	
-	char buf_titolo[] = "ID; PID";
+	char buf_titolo[] = "ID | PID";
 	numWrite = write(fd8, buf_titolo, sizeof(buf_titolo));
 	if(numWrite != sizeof(buf_titolo))
 		ErrExit("Errore scrittura sul file F8");
@@ -102,10 +102,6 @@ int main(int argc, char * argv[]) {
 				fd1 = open("OutputFiles/F1.csv", O_RDWR | O_EXCL | O_TRUNC, S_IRUSR | S_IWUSR);
 				if(fd1 == -1)
 					ErrExit("Errore apertura file F0");
-				//scrittura nel file F1 dell'intestazione
-				numWrite = write(fd1, buffer_S, sizeof(buffer_S));
-				if(numWrite != sizeof(buffer_S))
-					ErrExit("Errore scrittura sul file F1");
 				
 				struct Message{
 					char Id[M];
@@ -118,12 +114,20 @@ int main(int argc, char * argv[]) {
 					char Type[N];
 				};
 				
+				
+				//scrittura nel file F1 dell'intestazione
+				numWrite = write(fd1, buffer_S, sizeof(buffer_S));
+				if(numWrite != sizeof(buffer_S))
+					ErrExit("Errore scrittura sul file F1");
+					
+				//trovo la grandezza in byte di F0
 				off_t current1 = lseek(fd0, -1, SEEK_END);
 				
+				//setto puntatore dopo l'intestazione
 				int puntatore=53;
 				char buff_f0[current1-puntatore];
 				
-				//conto quanti Messaggi ho
+				//conto il numero di Messaggi dentro F0
 				current = lseek(fd0, puntatore, SEEK_SET);
 				numRead = read(fd0, buff_f0, sizeof(buff_f0));
 				if(numRead == -1)
@@ -132,11 +136,10 @@ int main(int argc, char * argv[]) {
 					if(buff_f0[i]=='\n')
 						capo++;
 				}
+				
 				struct Message Mess[capo];
+				
 				for(k=0; k<capo; k++){
-						
-						
-					
 					//lettura id da F0
 					current = lseek(fd0, puntatore, SEEK_SET);
 					numRead = read(fd0, buff_f0, sizeof(buff_f0));
@@ -147,9 +150,16 @@ int main(int argc, char * argv[]) {
 					buff_f0[i+1]='\0';
 					lenght_id= i+1;
 					strcpy(Mess[k].Id, buff_f0); 
-					printf("%s", Mess[k].Id);
-					puntatore = puntatore+lenght_id;
+					char buff_id[lenght_id];
+					strcpy(buff_id, Mess[k].Id);
 					
+					//scrittura nel file F1 dell'ID
+					numWrite = write(fd1, buff_id, sizeof(buff_id));
+					if(numWrite != sizeof(buff_id))
+						ErrExit("Errore scrittura sul file F1");
+						
+					puntatore = puntatore+lenght_id;
+						
 					//lettura Messaggio
 					current = lseek(fd0, puntatore, SEEK_SET);
 					numRead = read(fd0, buff_f0, sizeof(buff_f0));
@@ -158,10 +168,17 @@ int main(int argc, char * argv[]) {
 					
 					for(i=0; buff_f0[i]!= ';'; i++);
 					buff_f0[i+1]='\0';
-					lenght_Mess=i+1;
-					strcpy(Mess[k].Message, buff_f0);
-					printf("%s", Mess[k].Message);	
-					puntatore=puntatore+lenght_Mess;
+					lenght_mess=i+1;
+					strcpy(Mess[k].Message, buff_f0);	
+					char buff_mess[lenght_mess];
+					strcpy(buff_mess, Mess[k].Message);
+					
+					//scrittura nel file F1 del messaggio
+					numWrite = write(fd1, buff_mess, sizeof(buff_mess));
+					if(numWrite != sizeof(buff_mess))
+						ErrExit("Errore scrittura sul file F1");
+					
+					puntatore=puntatore+lenght_mess;
 					
 					//lettura IdSender
 					current = lseek(fd0, puntatore, SEEK_SET);
@@ -173,7 +190,15 @@ int main(int argc, char * argv[]) {
 					buff_f0[i+1]='\0';
 					lenght_idsender=i+1;
 					strcpy(Mess[k].IdSender, buff_f0);
-					printf("%s", Mess[k].IdSender);
+					
+					char buff_sender[lenght_idsender];
+					strcpy(buff_sender, Mess[k].IdSender);
+					
+					//scrittura nel file F1 dell'idSender
+					numWrite = write(fd1, buff_sender, sizeof(buff_sender));
+					if(numWrite != sizeof(buff_sender))
+						ErrExit("Errore scrittura sul file F1");
+						
 					puntatore=puntatore+lenght_idsender;
 					
 					//lettura IdReceiver
@@ -186,7 +211,13 @@ int main(int argc, char * argv[]) {
 					buff_f0[i+1]='\0';
 					lenght_idreceiver=i+1;
 					strcpy(Mess[k].IdReceiver, buff_f0);
-					printf("%s", Mess[k].IdReceiver);
+					char buff_receiver[lenght_idreceiver];
+					strcpy(buff_receiver, Mess[k].IdReceiver);
+					
+					//scrittura nel file F1 dell'idReceiver
+					numWrite = write(fd1, buff_receiver, sizeof(buff_receiver));
+					if(numWrite != sizeof(buff_receiver))
+						ErrExit("Errore scrittura sul file F1");
 					puntatore= puntatore+lenght_idreceiver;
 					
 					//lettura DelS1
@@ -199,7 +230,6 @@ int main(int argc, char * argv[]) {
 					buff_f0[i+1]='\0';
 					lenght_s1=i+1;
 					strcpy(Mess[k].DelS1, buff_f0);
-					printf("%s", Mess[k].DelS1);
 					puntatore = puntatore+lenght_s1;
 					
 					//lettura DelS2
@@ -212,7 +242,6 @@ int main(int argc, char * argv[]) {
 					buff_f0[i+1]='\0';
 					lenght_s2=i+1;
 					strcpy(Mess[k].DelS2, buff_f0);
-					printf("%s", Mess[k].DelS2);
 					puntatore = puntatore+lenght_s2;
 					
 					//lettura DelS3
@@ -225,7 +254,6 @@ int main(int argc, char * argv[]) {
 					buff_f0[i+1]='\0';
 					lenght_s3=i+1;
 					strcpy(Mess[k].DelS3, buff_f0);
-					printf("%s", Mess[k].DelS3);
 					puntatore = puntatore+lenght_s3;
 					
 					//lettura Type
@@ -235,16 +263,15 @@ int main(int argc, char * argv[]) {
 						ErrExit("Errore lettura file F0");
 					
 					for(i=0; buff_f0[i]!= '\n'; i++);
-					buff_f0[i+1]='\0';
-					lenght_type=i+1;
+					buff_f0[i]='\0';
+					buff_f0[i+1]='\n';
+					lenght_type=i;
 					strcpy(Mess[k].Type, buff_f0);
-					printf("%s", Mess[k].Type);
 					
 					puntatore=puntatore+lenght_type;
-					buff_f0[puntatore]= '\n';
 					
-					}
-				
+				}
+
 			}
 			//esecuzione S2
 			else if(child == 2) {  
