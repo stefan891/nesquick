@@ -1,10 +1,66 @@
-/// @file defines.c
-/// @brief Contiene l'implementazione delle funzioni
-///         specifiche del progetto.
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <fcntl.h>
+#include <sys/ipc.h>
+#include <sys/dir.h>
+#include <dirent.h>
+#include <sys/types.h>
+#include <unistd.h>
+#include <sys/wait.h>
+#include <signal.h>
+#include <sys/msg.h>
+#include <sys/time.h>
+#include <sys/stat.h>
+#include <string.h>
 #include "defines.h"
-#define COUNT count[y] 
 
+#define LENGTH puct-52
+#define COUNT count[y]
+
+void stampa(char []);
+void SenderReader(char []);
+
+typedef struct 
+{
+    char id [1];
+    char mass [50];
+    char id_sender [2];
+    char id_rec [2];
+    char S1 [4];
+    char S2 [4];
+    char S3 [4];
+    char type [5];
+} message_t;
+
+
+int main(int argc, char *argv[]){
+
+    // For each file provided as input argument
+    for (int i = 1; i < argc; ++i) {
+        // open the file in read only mode
+        int fd0 = open( "F0.csv", O_RDONLY | O_EXCL, S_IRUSR | S_IWUSR); 
+        // check error of open system call
+        if (fd0 == -1) {
+            printf("File %s does not exist\n", fd0);
+            errExit("open");
+            continue;
+        }
+
+    off_t puct = lseek(fd0, -1, SEEK_END);
+    char buffer[LENGTH];
+    off_t current = lseek(fd0, 53, SEEK_SET);
+    ssize_t bR = 0;
+
+    bR = read(fd0, buffer, LENGTH ); 
+
+
+
+    close(fd0);
+
+    return 0;
+
+
+};
 
 void SenderRead(char BUFFER_SZ[]){
 
@@ -73,36 +129,5 @@ void SenderRead(char BUFFER_SZ[]){
         }
     }
 
-    //return lista;
-    stampa(MSG.mass);
-    
-}
-
-void stampa(char mess[]){
-
-    int i;
-    printf("%s\n", mess);
-
-}
-elem *inserisci_in_coda(elem *lista, message_t mess){
-
-    elem *prec;
-    elem *tmp;
-    tmp = (elem*)malloc(sizeof(elem));
-
-    if(tmp != NULL){
-        tmp -> next = NULL;
-        tmp -> Msg = mess;
-
-        if(lista == NULL)
-            lista = tmp;
-        
-        else{
-            for( prec=lista; prec->next!=NULL; prec= prec->next);
-            prec->next = tmp;
-        }
-    }else
-        printf("memoria esaurita");
-    
-    return lista;
+    printf("%s", MSG.mass);
 }
